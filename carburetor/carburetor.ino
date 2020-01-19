@@ -56,7 +56,7 @@ int use_Pot_Choke()
  int potPin = A1;
  int potVal; //Variable that will read the potentiometer
  potVal = analogRead(potPin);
- potVal = map(potVal, 0, 1023, 120, 180);
+ potVal = map(potVal, 0, 1023, 100, 180);
  return(potVal);
 }
 /////////////////////////////////////////////////////////////////////////////
@@ -75,10 +75,18 @@ int digital_volts;
 float volts;
 float air_fuel_ratio;
 
-int chokePosition = 120; //initiates the position of the servo at fully closed and 120
-int throttlePosition = 120; //initiates the position of the Throttle at fully open or 120;
 
+// Servo postions
+// Choke is fully closed is 100 and fully open is 180
+int chokeFullyOpen = 180;
+int chokeFullyClosed = 100;
 
+//Throttle is fully closed at 180 and fully open at 120
+int throttleFullyOpen = 120;
+int throttleFullyClosed = 180;
+
+int chokePosition = chokeFullyClosed; //initiates the position of the choke at fully closed
+int throttlePosition = throttleFullyOpen; //initiates the position of the throttle at fully open
 
 void setup() {
   Serial.begin(9600);
@@ -118,11 +126,11 @@ Serial.print("RPM is ");
 //Control loop for engine speed
 //Throttle is fully closed at 180 and fully open at 120
 int currentRPM = getRPM();
- if (currentRPM > 3650 && throttlePosition < 180) {
+ if (currentRPM > 3650 && throttlePosition < throttleFullyClosed) {
   throttlePosition++;
   throttleServo.write(throttlePosition);
  }
- else if ( currentRPM < 3550 && throttlePosition > 120) {
+ else if ( currentRPM < 3550 && throttlePosition > throttleFullyOpen) {
   throttlePosition--;
   throttleServo.write(throttlePosition);
  }
@@ -131,15 +139,16 @@ int currentRPM = getRPM();
 
 
  //Control Loop for Choke
+  //Fully closed is 100 and fully open is 180, opposite of the throttle
  if (analogRead(potPin) < 1000) {
   chokeServo.write(use_Pot_Choke());
  }
  else {
-  if (volts < 2.33 && chokePosition > 120) {
-    chokePosition--;//Fully closed is 120 and fully open is 180, opposite of the throttle
+  if (volts < 2.33 && chokePosition > chokeFullyClosed) {
+    chokePosition--;
     chokeServo.write(chokePosition);
   }
-  if (volts > 3.13 && chokePosition < 180) {
+  if (volts > 3.13 && chokePosition < chokeFullyOpen) {
     chokePosition++;
     chokeServo.write(chokePosition);
   }
